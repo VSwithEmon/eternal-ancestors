@@ -2,15 +2,33 @@
   // Mobile nav
   var toggle = document.querySelector('.nav-toggle');
   var nav = document.getElementById('nav');
+  var lockedY = 0;
+  function lockScroll(lock) {
+    var b = document.body;
+    if (lock && !b.classList.contains('scroll-locked')) {
+      lockedY = window.scrollY;
+      b.style.top = -lockedY + 'px';
+      b.classList.add('scroll-locked');
+    } else if (!lock && b.classList.contains('scroll-locked')) {
+      b.classList.remove('scroll-locked');
+      b.style.top = '';
+      var html = document.documentElement, prev = html.style.scrollBehavior;
+      html.style.scrollBehavior = 'auto';
+      window.scrollTo(0, lockedY);
+      html.style.scrollBehavior = prev;
+    }
+  }
   function setNav(open) {
     toggle.setAttribute('aria-expanded', String(open));
     toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
     nav.classList.toggle('open', open);
-    document.body.style.overflow = open ? 'hidden' : '';
+    document.documentElement.classList.toggle('menu-open', open);
+    lockScroll(open);
+    if (open) { var first = nav.querySelector('a'); if (first) first.focus({ preventScroll: true }); }
   }
   toggle.addEventListener('click', function () { setNav(toggle.getAttribute('aria-expanded') !== 'true'); });
   nav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', function () { setNav(false); }); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setNav(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && nav.classList.contains('open')) { setNav(false); toggle.focus(); } });
   window.addEventListener('resize', function () { if (window.innerWidth > 860) setNav(false); });
 
   // Pre-select interest from CTA links
